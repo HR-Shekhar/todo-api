@@ -1,0 +1,10 @@
+package routes
+
+import (
+	"github.com/HR-Shekhar/todo-api/internal/handler"
+	"github.com/labstack/echo/v4"
+)
+
+func RegisterRoutes(e *echo.Echo) {
+	e.GET("/health", handler.HealthCheck)
+}
