@@ -2,11 +2,13 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Todo struct {
-	ID int		    	`json:"id"`
-	UserID int	    	`json:"user_id"`
+	ID uuid.UUID	    	`json:"id"`
+	UserID uuid.UUID	    	`json:"user_id"`
 	Title string 		`json:"title"`
 	Description string  `json:"description"`
 	IsCompleted bool    `json:"is_completed"`
