@@ -17,3 +17,62 @@ create           -> create migration files
 ## Verify
 
 `docker exec -it todo_postgres psql -U postgres -d todo_api`
+
+
+### Postgres, writing query in repo
+1. Exec()
+
+Use when you don't expect rows back.
+
+Example:-
+
+`DELETE FROM users WHERE id = ...`
+
+or
+
+`UPDATE users SET ...`
+
+You only care:
+
+Did it succeed?
+How many rows affected?
+
+No row data returned.
+
+2. QueryRow()
+
+Use when you expect exactly:
+
+one row
+
+back.
+
+Example:
+
+`SELECT * FROM users WHERE email = ...`
+
+One user.
+
+Or:
+
+`INSERT ... RETURNING id`
+
+One inserted row.
+
+3. Query()
+
+Use when you expect:
+
+many rows
+
+Example:
+
+`SELECT * FROM todos`
+
+which may return:
+
+0 rows
+1 row
+100 rows
+
+You then iterate through them.
