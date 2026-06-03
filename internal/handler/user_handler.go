@@ -15,3 +15,4 @@ func NewUserHandler(repo *repository.UserRepository) *UserHandler {
 }
 
 
+func (h *UserHandler) CreateUser(...)

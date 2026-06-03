@@ -23,18 +23,18 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) (*mo
     username,
     email,
     password_hash
-)
-VALUES (
-    $1,
-    $2,
-    $3,
-    $4
-)
-RETURNING
-    id,
-    created_at,
-    updated_at;`
-	
+	)
+	VALUES (
+		$1,
+		$2,
+		$3,
+		$4
+	)
+	RETURNING
+		id,
+		created_at,
+		updated_at;`
+		
 	row := r.db.QueryRow(
 		ctx,
 		query,
