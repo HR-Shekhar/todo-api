@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"os/user"
+	"strings"
 
 	"github.com/HR-Shekhar/todo-api/internal/models"
 	"github.com/HR-Shekhar/todo-api/internal/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -22,5 +23,26 @@ func (s *UserService) RegisterUser(
     ctx context.Context,
     req *models.CreateUserRequest,
 ) (*models.User, error) {
-	s.userRepo.CreateUser(ctx, &models.User{})
+	hash, err := bcrypt.GenerateFromPassword(
+		[]byte(req.Password),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// build user from request
+	user := &models.User{
+		FullName: req.FullName,
+		Username: strings.TrimSpace(strings.ToLower(req.Username)),
+		Email:    strings.TrimSpace(strings.ToLower(req.Email)),
+		PasswordHash: string(hash),
+	}
+
+	created, err := s.userRepo.CreateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return created, nil
 }
