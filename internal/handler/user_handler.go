@@ -1,6 +1,7 @@
 package handler
 
 import (
+	// "errors"
 	"net/http"
 
 	"github.com/HR-Shekhar/todo-api/internal/models"
@@ -31,8 +32,18 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		&req,
 	)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
+		switch err {
+			case service.ErrEmailAlreadyExists:
+				return c.JSON(http.StatusConflict, map[string]string{
+					"error": err.Error(),
+				})
+			case service.ErrUsernameAlreadyExists:
+				return c.JSON(http.StatusConflict, map[string]string{
+					"error": err.Error(),
+				})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "internal server error",
 		})
 	}
 	response := models.UserResponse{
