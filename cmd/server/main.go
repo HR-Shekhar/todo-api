@@ -7,6 +7,8 @@ import (
 	"github.com/HR-Shekhar/todo-api/internal/repository"
 	"github.com/HR-Shekhar/todo-api/internal/routes"
 	"github.com/HR-Shekhar/todo-api/internal/service"
+	"github.com/HR-Shekhar/todo-api/internal/validator"
+	
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,6 +16,8 @@ func main() {
 	cfg := config.LoadConfig()
 	
 	e := echo.New()
+
+	e.Validator = validator.NewCustomValidator()
 
 	dbpool := database.NewPostgresConnection(cfg)
 	userRepo := repository.NewUserRepository(dbpool)
