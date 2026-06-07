@@ -56,3 +56,10 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) (*mo
 
 	return user,nil
 }
+
+func (r *UserRepository) GetUserByEmail(
+    ctx context.Context,
+    email string,
+) (*models.User, error) {
+
+}
