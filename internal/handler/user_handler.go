@@ -20,7 +20,6 @@ func NewUserHandler(service *service.UserService) *UserHandler {
 	}
 }
 
-
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	var req models.CreateUserRequest
 	if err := c.Bind(&req); err != nil {
@@ -38,16 +37,16 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		}
 		var messages []string
 
-		for _ ,validationErr := range validationErrors {
+		for _, validationErr := range validationErrors {
 			switch validationErr.Tag() {
 			case "required":
-				messages = append(messages, validationErr.Field() + " is required.")
+				messages = append(messages, validationErr.Field()+" is required.")
 			case "email":
-				messages = append(messages, validationErr.Field() + " must be valid.")
+				messages = append(messages, validationErr.Field()+" must be valid.")
 			case "min":
-				messages = append(messages, validationErr.Field() + " must be at least " + validationErr.Param() + " characters.")
+				messages = append(messages, validationErr.Field()+" must be at least "+validationErr.Param()+" characters.")
 			case "notblank":
-				messages = append(messages, validationErr.Field() + " should not be blank.")
+				messages = append(messages, validationErr.Field()+" should not be blank.")
 			case "strongpassword":
 				messages = append(messages, "password should include atleast an uppercase letter, a lowercase letter, a digit and a special character, spaces are not allowed.")
 			}
@@ -66,14 +65,14 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	)
 	if err != nil {
 		switch err {
-			case service.ErrEmailAlreadyExists:
-				return c.JSON(http.StatusConflict, map[string]string{
-					"error": err.Error(),
-				})
-			case service.ErrUsernameAlreadyExists:
-				return c.JSON(http.StatusConflict, map[string]string{
-					"error": err.Error(),
-				})
+		case service.ErrEmailAlreadyExists:
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error": err.Error(),
+			})
+		case service.ErrUsernameAlreadyExists:
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error": err.Error(),
+			})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "internal server error",
@@ -88,4 +87,41 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		UpdatedAt: user.UpdatedAt,
 	}
 	return c.JSON(http.StatusCreated, response)
+}
+
+func (h *UserHandler) LoginUser(c echo.Context) error {
+	var req models.LoginRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	if err := c.Validate(&req); err != nil {
+		validationErrors, ok := err.(validator.ValidationErrors)  //Type assertion, it returns 2 values if the assertion succeeded it return (value, true) and vice versa 
+
+		if !ok {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			})
+		}
+		var messages []string
+
+		for _, validationErr := range validationErrors {
+			switch validationErr.Tag() {
+			case "required":
+				messages = append(messages, validationErr.Field()+" is required.")
+			case "email":
+				messages = append(messages, validationErr.Field()+" must be valid.")
+			}
+		}
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]any{
+				"errors": messages,
+			},
+		)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{})
 }

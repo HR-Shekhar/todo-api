@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"strings"
 	"errors"
-	
-    "github.com/jackc/pgx/v5/pgconn"
+	"strings"
+
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/HR-Shekhar/todo-api/internal/models"
 	"github.com/HR-Shekhar/todo-api/internal/repository"
@@ -57,4 +57,29 @@ func (s *UserService) RegisterUser(
 	}
 
 	return created, nil
+}
+
+func (s *UserService) LoginUser(
+	ctx context.Context,
+	req *models.LoginRequest,
+) (*models.User, error) {
+	user, err := s.userRepo.GetUserByEmail(
+		ctx,
+		strings.TrimSpace(strings.ToLower(req.Email)),
+	)
+
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return nil, ErrInvalidCredentials
+		}
+		return nil,err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash),[]byte(req.Password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return nil, ErrInvalidCredentials
+		}
+		return nil, err
+	}
+	return user, nil
 }
