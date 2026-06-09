@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Port string
 	Database DBConfig
+	JWTSecret string
 }
 
 type DBConfig struct {
@@ -50,6 +51,10 @@ func LoadConfig() *Config {
 	mainConfig.Port = os.Getenv("PORT")
 	if mainConfig.Port == "" {
 		log.Fatal("PORT is empty")
+	}
+	mainConfig.JWTSecret = os.Getenv("JWT_SECRET")
+	if mainConfig.Port == "" {
+		log.Fatal("JWT_SECRET is empty")
 	}
 	mainConfig.Database = *dbconfig
 	return mainConfig

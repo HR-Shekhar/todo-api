@@ -120,8 +120,33 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 			map[string]any{
 				"errors": messages,
 			},
+		)	
+	}
+
+	token, err := h.userService.LoginUser(
+		c.Request().Context(),
+		&req,
+	)
+    if err != nil {
+		switch err {
+		case service.ErrInvalidCredentials:
+			return c.JSON(http.StatusUnauthorized, map[string]string{
+				"errors": err.Error(),
+			})
+		}
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{
+				"error": "internal server error",
+			},
 		)
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{})
+
+	return c.JSON(
+		http.StatusOK,
+		map[string]string{
+			"token": token,
+		},
+	)
 }

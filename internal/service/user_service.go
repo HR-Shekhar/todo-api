@@ -4,21 +4,27 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"golang.org/x/crypto/bcrypt"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 
 	"github.com/HR-Shekhar/todo-api/internal/models"
 	"github.com/HR-Shekhar/todo-api/internal/repository"
-	"golang.org/x/crypto/bcrypt"
+	
 )
 
 type UserService struct {
 	userRepo *repository.UserRepository
+	jwtSecret string
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
+func NewUserService(repo *repository.UserRepository, jwtSecret string) *UserService {
 	return &UserService{
 		userRepo: repo,
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -62,7 +68,7 @@ func (s *UserService) RegisterUser(
 func (s *UserService) LoginUser(
 	ctx context.Context,
 	req *models.LoginRequest,
-) (*models.User, error) {
+) (string, error) {
 	user, err := s.userRepo.GetUserByEmail(
 		ctx,
 		strings.TrimSpace(strings.ToLower(req.Email)),
@@ -70,16 +76,36 @@ func (s *UserService) LoginUser(
 
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			return nil, ErrInvalidCredentials
+			return "", ErrInvalidCredentials
 		}
-		return nil,err
+		return "", err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash),[]byte(req.Password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return nil, ErrInvalidCredentials
+			return "", ErrInvalidCredentials
 		}
-		return nil, err
+		return "", err
 	}
-	return user, nil
+	token, err := s.generateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (s *UserService) generateToken(userID uuid.UUID) (string, error) {
+	claims := jwt.MapClaims{
+		"sub": userID.String(),
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(
+		[]byte(s.jwtSecret),
+	)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }

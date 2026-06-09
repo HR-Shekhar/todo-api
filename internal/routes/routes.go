@@ -11,4 +11,5 @@ func RegisterRoutes(
 ) {
 	e.GET("/health", handler.HealthCheck)
 	e.POST("/test-user", userHandler.CreateUser)
+	e.POST("/login", userHandler.LoginUser)
 }

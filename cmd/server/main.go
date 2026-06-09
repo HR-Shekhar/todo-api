@@ -22,7 +22,7 @@ func main() {
 	dbpool := database.NewPostgresConnection(cfg)
 	userRepo := repository.NewUserRepository(dbpool)
 
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, cfg.JWTSecret)
 
 	userHandler := handler.NewUserHandler(userService)
 	defer dbpool.Close()
