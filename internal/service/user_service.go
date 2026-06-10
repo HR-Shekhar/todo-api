@@ -109,3 +109,18 @@ func (s *UserService) generateToken(userID uuid.UUID) (string, error) {
 	}
 	return tokenString, nil
 }
+
+func (s *UserService) GetUserByID(
+	ctx context.Context,
+	userID string,
+) (*models.User, error) {
+	parsedID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
+	}
+	user, err := s.userRepo.GetUserByID(ctx, parsedID)
+	if err != nil {
+		return nil, repository.ErrUserNotFound
+	}
+	return user, nil
+}

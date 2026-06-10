@@ -30,6 +30,7 @@ func main() {
 	routes.RegisterRoutes(
 		e,
 		userHandler,
+		cfg.JWTSecret,
 	)
 	
 	if err := e.Start(":"+ cfg.Port); err != nil {

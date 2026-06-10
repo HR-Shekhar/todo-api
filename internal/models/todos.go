@@ -7,11 +7,11 @@ import (
 )
 
 type Todo struct {
-	ID uuid.UUID	    	`json:"id"`
-	UserID uuid.UUID	    	`json:"user_id"`
-	Title string 		`json:"title"`
-	Description string  `json:"description"`
-	IsCompleted bool    `json:"is_completed"`
-	CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	Title       string
+	Description string
+	Completed   bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

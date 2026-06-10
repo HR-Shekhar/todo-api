@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/HR-Shekhar/todo-api/internal/models"
+	"github.com/HR-Shekhar/todo-api/internal/repository"
 	"github.com/HR-Shekhar/todo-api/internal/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -149,4 +150,46 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 			"token": token,
 		},
 	)
+}
+
+func (h *UserHandler) GetMe(c echo.Context) error {
+	userID, ok := c.Get("userID").(string)
+
+	if !ok {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{
+				"error": "failed to get authenticated user",
+			},
+		)
+	}
+	user, err := h.userService.GetUserByID(c.Request().Context(), userID)
+	if err != nil {
+		switch err {
+			case repository.ErrUserNotFound:
+				return c.JSON(
+					http.StatusNotFound,
+					map[string]string{
+						"error": err.Error(),
+					},
+				)
+
+			default:
+				return c.JSON(
+					http.StatusInternalServerError,
+					map[string]string{
+						"error": "internal server error",
+					},
+				)
+		}
+	}
+	response := models.UserResponse{
+		ID:        user.ID,
+		FullName:  user.FullName,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+	return c.JSON(http.StatusOK, response)
 }
