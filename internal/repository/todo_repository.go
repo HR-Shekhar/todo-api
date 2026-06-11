@@ -141,7 +141,9 @@ func (r *TodoRepository) ListTodos(
 		todos = append(todos, todo)
 	}
 
-	if err = rows.Err(); err != nil {
+	// if an err occurs midway rows.Next() still gives false,
+	// how to check that is it an err or no more rows, so we use rows.Err()
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return todos, nil
@@ -151,5 +153,69 @@ func (r *TodoRepository) UpdateTodo(
 	ctx context.Context,
 	todo *models.Todo,
 	) (*models.Todo, error) {
+	query := `
+	UPDATE todos
+	SET
+		title = $1,
+		description = $2,
+		completed = $3,
+		updated_at = NOW()
+	WHERE id = $4
+	AND user_id = $5
+	RETURNING
+		id,
+		user_id,
+		title,
+		description,
+		completed,
+		created_at,
+		updated_at;
+	`
+	row := r.db.QueryRow(
+		ctx,
+		query,
+		todo.Title,
+		todo.Description,
+		todo.Completed,
+		todo.ID,
+		todo.UserID,
+	)
+	err := row.Scan(
+		&todo.ID,
+		&todo.UserID,
+		&todo.Title,
+		&todo.Description,
+		&todo.Completed,
+		&todo.CreatedAt,
+		&todo.UpdatedAt,
+	)
 
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTodoNotFound
+		}
+		return nil, err
+	}
+	return todo, nil 
+}
+
+
+func (r *TodoRepository) DeleteTodo(
+		ctx context.Context,
+		todoID uuid.UUID,
+		userID uuid.UUID,
+	) (error) {
+	query := `
+	DELETE FROM todos WHERE id = $1 AND user_id = $2
+	`
+	commandTag, err := r.db.Exec(ctx, query, todoID, userID)
+	if err != nil {
+		return err
+	}
+	msg := commandTag.RowsAffected()
+
+	if msg == 0 {
+		return ErrDeletionFailed
+	}
+	return nil
 }
