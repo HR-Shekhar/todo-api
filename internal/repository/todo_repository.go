@@ -14,6 +14,12 @@ type TodoRepository struct {
 	db *pgxpool.Pool
 }
 
+func NewTodoReposiory(dbpool *pgxpool.Pool) *TodoRepository {
+	return &TodoRepository{
+		db: dbpool,
+	}
+}
+
 func (r *TodoRepository) CreateTodo(ctx context.Context, todo *models.Todo) (*models.Todo, error) {
 	query := `INSERT INTO todos (
     user_id,

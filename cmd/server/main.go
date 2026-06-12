@@ -20,16 +20,21 @@ func main() {
 	e.Validator = validator.NewCustomValidator()
 
 	dbpool := database.NewPostgresConnection(cfg)
+	
 	userRepo := repository.NewUserRepository(dbpool)
+	todoRepo := repository.NewTodoReposiory(dbpool)
 
 	userService := service.NewUserService(userRepo, cfg.JWTSecret)
+	todoService := service.NewTodoService(todoRepo)
 
 	userHandler := handler.NewUserHandler(userService)
+	todoHandler := handler.NewTodoHandler(todoService)
 	defer dbpool.Close()
 
 	routes.RegisterRoutes(
 		e,
 		userHandler,
+		todoHandler,
 		cfg.JWTSecret,
 	)
 	

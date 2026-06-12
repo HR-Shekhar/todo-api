@@ -40,16 +40,16 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 
 		for _, validationErr := range validationErrors {
 			switch validationErr.Tag() {
-			case "required":
-				messages = append(messages, validationErr.Field()+" is required.")
-			case "email":
-				messages = append(messages, validationErr.Field()+" must be valid.")
-			case "min":
-				messages = append(messages, validationErr.Field()+" must be at least "+validationErr.Param()+" characters.")
-			case "notblank":
-				messages = append(messages, validationErr.Field()+" should not be blank.")
-			case "strongpassword":
-				messages = append(messages, "password should include atleast an uppercase letter, a lowercase letter, a digit and a special character, spaces are not allowed.")
+				case "required":
+					messages = append(messages, validationErr.Field()+" is required.")
+				case "email":
+					messages = append(messages, validationErr.Field()+" must be valid.")
+				case "min":
+					messages = append(messages, validationErr.Field()+" must be at least "+validationErr.Param()+" characters.")
+				case "notblank":
+					messages = append(messages, validationErr.Field()+" should not be blank.")
+				case "strongpassword":
+					messages = append(messages, "password should include atleast an uppercase letter, a lowercase letter, a digit and a special character, spaces are not allowed.")
 			}
 		}
 		return c.JSON(

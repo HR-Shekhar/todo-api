@@ -9,6 +9,7 @@ import (
 func RegisterRoutes(
 	e *echo.Echo,
 	userHandler *handler.UserHandler,
+	todoHandler *handler.TodoHandler,
 	jwtSecret string,
 ) {
 	e.GET("/health", handler.HealthCheck)
@@ -19,4 +20,9 @@ func RegisterRoutes(
 		userHandler.GetMe,
 		middleware.JWTMiddleware(jwtSecret),
 	)
+	e.GET("/todo/:id", todoHandler.GetTodo, middleware.JWTMiddleware(jwtSecret))
+	e.POST("/todo", todoHandler.CreateTodo, middleware.JWTMiddleware(jwtSecret))
+	e.PUT("/todo/:id", todoHandler.UpdateTodo, middleware.JWTMiddleware(jwtSecret))
+	e.GET("/todo", todoHandler.ListTodos, middleware.JWTMiddleware(jwtSecret))
+	e.DELETE("/todo", todoHandler.DeleteTodo, middleware.JWTMiddleware(jwtSecret))
 }
