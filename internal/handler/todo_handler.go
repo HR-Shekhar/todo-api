@@ -53,20 +53,7 @@ func (h *TodoHandler) CreateTodo(c echo.Context) error {
 			},
 		)
 	}
-	userID, ok := c.Get("userID").(string)
-	if !ok {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "failed to get authenticated user",
-			},
-		)
-	}
-
-	parsedID, err := uuid.Parse(userID)
-	if err != nil {
-		return err
-	}
+	parsedID, err := getAuthenticatedUserID(c)
 
 	todo, err := h.todoService.CreateTodo(c.Request().Context(), &req, parsedID)
 	if err != nil {
@@ -86,36 +73,24 @@ func (h *TodoHandler) CreateTodo(c echo.Context) error {
 		CreatedAt: todo.CreatedAt,
 		UpdatedAt: todo.UpdatedAt,
 	}
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusCreated, response)
 }
 
 func (h *TodoHandler) GetTodo(c echo.Context) error {
 
-	userID, ok := c.Get("userID").(string)
-	if !ok {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "failed to get authenticated user",
-			},
-		)
-	}
-	parsedID, err := uuid.Parse(userID)
-	if err != nil {
-		return err
-	}
+	parsedID, err := getAuthenticatedUserID(c)
 
 	todoID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			map[string]string{
 				"error": "invalid todo id",
 			},
 		)
 	}
 
-	todo, err := h.todoService.GetTodo(c.Request().Context(), parsedID, todoID)
+	todo, err := h.todoService.GetTodo(c.Request().Context(), todoID, parsedID)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
@@ -170,25 +145,12 @@ func (h *TodoHandler) UpdateTodo(c echo.Context) error {
 			},
 		)
 	}
-	userID, ok := c.Get("userID").(string)
-	if !ok {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "failed to get authenticated user",
-			},
-		)
-	}
-
-	parsedID, err := uuid.Parse(userID)
-	if err != nil {
-		return err
-	}
+	parsedID, err := getAuthenticatedUserID(c)
 
 	todoID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			map[string]string{
 				"error": "invalid todo id",
 			},
@@ -218,16 +180,7 @@ func (h *TodoHandler) UpdateTodo(c echo.Context) error {
 
 func (h *TodoHandler) ListTodos(c echo.Context) error {
 
-	userID, ok := c.Get("userID").(string)
-	if !ok {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "failed to get authenticated user",
-			},
-		)
-	}
-	parsedID, err := uuid.Parse(userID)
+	parsedID, err := getAuthenticatedUserID(c)
 	if err != nil {
 		return err
 	}
@@ -241,29 +194,30 @@ func (h *TodoHandler) ListTodos(c echo.Context) error {
 			},
 		)
 	}
-	return c.JSON(http.StatusOK, todos)
+
+	var responses []models.TodoResponse
+
+	for _, todo := range todos {
+		responses = append(responses, models.TodoResponse{
+			ID:          todo.ID,
+			Title:       todo.Title,
+			Description: todo.Description,
+			Completed:   todo.Completed,
+			CreatedAt:   todo.CreatedAt,
+			UpdatedAt:   todo.UpdatedAt,
+		})
+	}
+	return c.JSON(http.StatusOK, responses)
 }
 
 func (h *TodoHandler) DeleteTodo(c echo.Context) error {
 
-	userID, ok := c.Get("userID").(string)
-	if !ok {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "failed to get authenticated user",
-			},
-		)
-	}
-	parsedID, err := uuid.Parse(userID)
-	if err != nil {
-		return err
-	}
+	parsedID, err := getAuthenticatedUserID(c)
 
 	todoID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			map[string]string{
 				"error": "invalid todo id",
 			},
@@ -280,5 +234,5 @@ func (h *TodoHandler) DeleteTodo(c echo.Context) error {
 		)
 	}
 
-	return c.JSON(http.StatusNoContent, err)
+	return c.NoContent(http.StatusNoContent)
 }
